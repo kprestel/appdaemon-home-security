@@ -443,22 +443,6 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        # {
-        #     "event_type": "folder_watcher",
-        #     "data": {
-        #         "event_type": "modified",
-        #         "path": "/tmp/camera_doods_flur_unten_20190908_223303.jpg",
-        #         "file": "camera_doods_flur_unten_20190908_223303.jpg",
-        #         "folder": "/tmp"
-        #     },
-        #     "origin": "LOCAL",
-        #     "time_fired": "2019-09-08T20:33:04.273143+00:00",
-        #     "context": {
-        #         "id": "7f43b291edba4b7cb818bd6c11fc937d",
-        #         "parent_id": null,
-        #         "user_id": null
-        #     }
-        # }
         if data["folder"] != self._camera_snapshot_path:
             self.log(
                 "Ignoring file because its folder does not match the configured camera_snapshot_path"
@@ -517,10 +501,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_state_triggered from {entity}:{attribute} {old}->{new}"
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
                 ringtone_id=self.get_xiaomi_aqara_trggered_ringtone_id(),
@@ -546,7 +527,7 @@ class AlarmSystem(hass.Hass):
 
         if (
             self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
+            and self.in_silent_mode()
         ):
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
@@ -567,10 +548,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
                 ringtone_id=self.get_xiaomi_aqara_pending_ringtone_id(),
@@ -592,7 +570,7 @@ class AlarmSystem(hass.Hass):
 
         if (
             self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
+            and self.in_silent_mode()
         ):
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
@@ -611,7 +589,7 @@ class AlarmSystem(hass.Hass):
 
         if (
             self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
+            and self.in_silent_mode()
         ):
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
@@ -636,7 +614,7 @@ class AlarmSystem(hass.Hass):
 
         if (
             self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
+            and self.in_silent_mode()
         ):
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
@@ -655,7 +633,7 @@ class AlarmSystem(hass.Hass):
 
         if (
             self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode() == False
+            and self.in_silent_mode()
         ):
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
@@ -676,7 +654,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if self.is_alarm_armed_away() == False:
+        if self.is_alarm_armed_away():
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
@@ -720,7 +698,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if self.is_alarm_armed_home() == False:
+        if self.is_alarm_armed_home():
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
@@ -752,7 +730,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_arm_away_state from {entity}:{attribute} {old}->{new}"
         )
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
@@ -818,7 +796,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_arm_home_state from {entity}:{attribute} {old}->{new}"
         )
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
@@ -854,7 +832,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 "Ignoring event {} of {} because alarm system is in state {}".format(
                     event_name, data["entity_id"], self.get_alarm_state()
@@ -930,7 +908,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 "Ignoring event {} of {} because alarm system is in state {}".format(
                     event_name, data["entity_id"], self.get_alarm_state()
@@ -964,7 +942,7 @@ class AlarmSystem(hass.Hass):
     def alarm_arm_away_auto_callback(self, entity, attribute, old, new, kwargs):
         self.log(f"Callback alarm_arm_away_auto from {entity}:{attribute} {old}->{new}")
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
@@ -1065,7 +1043,7 @@ class AlarmSystem(hass.Hass):
     def alarm_arm_home_auto(self):
         self.log("Running alarm_arm_home_auto")
 
-        if self.is_alarm_disarmed() == False:
+        if self.is_alarm_disarmed():
             self.log(
                 f"Ignoring because alarm system is in state {self.get_alarm_state()}"
             )
@@ -1085,7 +1063,7 @@ class AlarmSystem(hass.Hass):
             )
             return
 
-        if self.is_time_in_alarm_home_window() == False:
+        if self.is_time_in_alarm_home_window():
             self.log("Ignoring because we are not within alarm home time window")
             return
 
@@ -1100,7 +1078,7 @@ class AlarmSystem(hass.Hass):
     def alarm_disarm_home_auto(self):
         self.log("Running alarm_disarm_home_auto")
 
-        if self.is_alarm_armed_home() == False:
+        if self.is_alarm_armed_home():
             self.log(
                 f"Ignoring because alarm system is in state {self.get_alarm_state()}"
             )
