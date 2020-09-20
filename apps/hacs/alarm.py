@@ -525,10 +525,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode()
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
                 ringtone_id=self.get_xiaomi_aqara_pending_ringtone_id(),
@@ -568,10 +565,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode()
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
                 ringtone_id=self.get_xiaomi_aqara_pending_ringtone_id(),
@@ -587,10 +581,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_state_disarmed from {entity}:{attribute} {old}->{new}"
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode()
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
             )
@@ -612,10 +603,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_state_armed_away from {entity}:{attribute} {old}->{new}"
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode()
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
             )
@@ -631,10 +619,7 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_state_armed_home from {entity}:{attribute} {old}->{new}"
         )
 
-        if (
-            self.get_xiaomi_aqara_gw_mac() is not None
-            and self.in_silent_mode()
-        ):
+        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/stop_ringtone", gw_mac=self.get_xiaomi_aqara_gw_mac()
             )
