@@ -77,36 +77,32 @@ class AlarmSystem(hass.Hass):
         self._xiaomi_aqara_buttons = self.args.get("xiaomi_aqara_buttons", [])
 
         # log current config
-        self.log(
-            "Got armed_home binary sensors {}".format(self._armed_home_binary_sensors)
-        )
+        self.log(f"Got armed_home binary sensors {self._armed_home_binary_sensors}")
         self.log(
             "Got armed_home image processing sensors {}".format(
                 self._armed_home_image_processing_sensors
             )
         )
-        self.log(
-            "Got armed_away binary sensors {}".format(self._armed_away_binary_sensors)
-        )
+        self.log(f"Got armed_away binary sensors {self._armed_away_binary_sensors}")
         self.log(
             "Got armed_away image processing sensors {}".format(
                 self._armed_away_image_processing_sensors
             )
         )
-        self.log("Got alarm buttons {}".format(self._alarm_control_buttons))
-        self.log("Got device trackers {}".format(self._device_trackers))
+        self.log(f"Got alarm buttons {self._alarm_control_buttons}")
+        self.log(f"Got device trackers {self._device_trackers}")
         self.log(
             "Got {} device_trackers home and {} device_trackers not home".format(
                 self.count_home_device_trackers(), self.count_not_home_device_trackers()
             )
         )
-        self.log("Got guest_mode {}".format(self.in_guest_mode()))
-        self.log("Got vacation_mode {}".format(self.in_vacation_mode()))
-        self.log("Got silent mode {}".format(self.in_silent_mode()))
-        self.log("Got info volume {}".format(self.get_info_volume()))
-        self.log("Got alarm volume {}".format(self.get_alarm_volume()))
-        self.log("Got notify service {}".format(self._notify_service))
-        self.log("Got alarm state {}".format(self.get_alarm_state()))
+        self.log(f"Got guest_mode {self.in_guest_mode()}")
+        self.log(f"Got vacation_mode {self.in_vacation_mode()}")
+        self.log(f"Got silent mode {self.in_silent_mode()}")
+        self.log(f"Got info volume {self.get_info_volume()}")
+        self.log(f"Got alarm volume {self.get_alarm_volume()}")
+        self.log(f"Got notify service {self._notify_service}")
+        self.log(f"Got alarm state {self.get_alarm_state()}")
 
         self.listen_state(
             self.alarm_state_triggered_callback,
@@ -216,13 +212,13 @@ class AlarmSystem(hass.Hass):
         if self._alarm_arm_home_after_time is not None:
             runtime = self.parse_time(self._alarm_arm_home_after_time)
             self.run_daily(self.alarm_arm_home_auto_timer_callback, runtime)
-            self.log("Got alarm_arm_home_after_time {}".format(runtime))
+            self.log(f"Got alarm_arm_home_after_time {runtime}")
         if self._alarm_arm_home_before_time is not None:
             runtime = self.parse_time(self._alarm_arm_home_before_time)
             self.run_daily(self.alarm_disarm_home_auto_timer_callback, runtime)
-            self.log("Got alarm_arm_home_before_time {}".format(runtime))
+            self.log(f"Got alarm_arm_home_before_time {runtime}")
 
-        self.log("Current alarm_state is {}".format(self.get_alarm_state()))
+        self.log(f"Current alarm_state is {self.get_alarm_state()}")
 
     def start_sensor_listeners(self):
         if self.is_alarm_armed_away():
@@ -392,7 +388,7 @@ class AlarmSystem(hass.Hass):
         for light in self._alarm_lights:
             self.toggle(light)
         self._flash_count += 1
-        self.log("Flash warning count {}".format(self._flash_count))
+        self.log(f"Flash warning count {self._flash_count}")
         if self._flash_count < 60:
             self._flash_warning_handle = self.run_in(self.flash_warning, 1)
 
@@ -434,7 +430,7 @@ class AlarmSystem(hass.Hass):
             self.call_service("camera/snapshot", entity_id=camera, filename=filename)
 
         self._snap_count += 1
-        self.log("Camera snapshot {} stored as {}".format(self._snap_count, filename))
+        self.log(f"Camera snapshot {self._snap_count} stored as {filename}")
         if self._snap_count < self._snap_max_count:
             self._camera_snapshot_handle = self.run_in(
                 self.camera_snapshot, self._snap_interval
@@ -484,7 +480,7 @@ class AlarmSystem(hass.Hass):
             return
 
         for user_id in self._telegram_user_ids:
-            self.log("Sending photo {} to user_id {}".format(data["path"], user_id))
+            self.log(f"Sending photo {data['path']} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_photo",
                 title="*Alarm System*",
@@ -503,7 +499,7 @@ class AlarmSystem(hass.Hass):
         self._snap_reason = reason
         self._snap_start_timestamp = time.time()
         self._snap_interval = interval
-        self.log("Starting camera snapshot timer".format())
+        self.log("Starting camera snapshot timer")
         self._camera_snapshot_handle = self.run_in(self.camera_snapshot, 1)
 
     def stop_camera_snapshot(self):
@@ -518,9 +514,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_state_triggered_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_state_triggered from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_state_triggered from {entity}:{attribute} {old}->{new}"
         )
 
         if (
@@ -612,9 +606,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_state_disarmed_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_state_disarmed from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_state_disarmed from {entity}:{attribute} {old}->{new}"
         )
 
         if (
@@ -639,9 +631,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_state_armed_away_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_state_armed_away from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_state_armed_away from {entity}:{attribute} {old}->{new}"
         )
 
         if (
@@ -660,9 +650,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_state_armed_home_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_state_armed_home from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_state_armed_home from {entity}:{attribute} {old}->{new}"
         )
 
         if (
@@ -708,7 +696,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} state changed from {} to {}".format(
                 self.get_state(entity, attribute="friendly_name"), old, new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -744,7 +732,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} state changed from {} to {}".format(
                 self.get_state(entity, attribute="friendly_name"), old, new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -761,9 +749,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_arm_away_state_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_arm_away_state from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_arm_away_state from {entity}:{attribute} {old}->{new}"
         )
 
         if self.is_alarm_disarmed() == False:
@@ -778,7 +764,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} send arm_away event {}".format(
                 self.get_state(entity, attribute="friendly_name"), new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -796,11 +782,7 @@ class AlarmSystem(hass.Hass):
         )
 
     def alarm_disarm_state_callback(self, entity, attribute, old, new, kwargs):
-        self.log(
-            "Callback alarm_disarm_state from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
-        )
+        self.log(f"Callback alarm_disarm_state from {entity}:{attribute} {old}->{new}")
 
         if self.is_alarm_disarmed():
             self.log(
@@ -814,7 +796,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} send disarm event {}".format(
                 self.get_state(entity, attribute="friendly_name"), new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -833,9 +815,7 @@ class AlarmSystem(hass.Hass):
 
     def alarm_arm_home_state_callback(self, entity, attribute, old, new, kwargs):
         self.log(
-            "Callback alarm_arm_home_state from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
+            f"Callback alarm_arm_home_state from {entity}:{attribute} {old}->{new}"
         )
 
         if self.is_alarm_disarmed() == False:
@@ -850,7 +830,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} send arm_home event {}".format(
                 self.get_state(entity, attribute="friendly_name"), new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -888,7 +868,7 @@ class AlarmSystem(hass.Hass):
                 event_name,
                 data["click_type"],
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -926,7 +906,7 @@ class AlarmSystem(hass.Hass):
                 event_name,
                 data["click_type"],
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -964,7 +944,7 @@ class AlarmSystem(hass.Hass):
                 event_name,
                 data["click_type"],
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -982,11 +962,7 @@ class AlarmSystem(hass.Hass):
         )
 
     def alarm_arm_away_auto_callback(self, entity, attribute, old, new, kwargs):
-        self.log(
-            "Callback alarm_arm_away_auto from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
-        )
+        self.log(f"Callback alarm_arm_away_auto from {entity}:{attribute} {old}->{new}")
 
         if self.is_alarm_disarmed() == False:
             self.log(
@@ -1000,7 +976,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} state changed from {} to {}".format(
                 self.get_state(entity, attribute="friendly_name"), old, new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -1034,11 +1010,7 @@ class AlarmSystem(hass.Hass):
         )
 
     def alarm_disarm_auto_callback(self, entity, attribute, old, new, kwargs):
-        self.log(
-            "Callback alarm_disarm_auto from {}:{} {}->{}".format(
-                entity, attribute, old, new
-            )
-        )
+        self.log(f"Callback alarm_disarm_auto from {entity}:{attribute} {old}->{new}")
 
         if self.is_alarm_disarmed():
             self.log(
@@ -1052,7 +1024,7 @@ class AlarmSystem(hass.Hass):
             msg = "{} state changed from {} to {}".format(
                 self.get_state(entity, attribute="friendly_name"), old, new
             )
-            self.log("Sending message {} to user_id {}".format(msg, user_id))
+            self.log(f"Sending message {msg} to user_id {user_id}")
             self.call_service(
                 "telegram_bot/send_message",
                 title="*Alarm System*",
@@ -1081,12 +1053,12 @@ class AlarmSystem(hass.Hass):
         self.alarm_arm_home_auto()
 
     def alarm_arm_home_auto_timer_callback(self, kwargs):
-        self.log("Callback alarm_arm_home_auto_timer".format())
+        self.log("Callback alarm_arm_home_auto_timer")
 
         self.alarm_arm_home_auto()
 
     def alarm_disarm_home_auto_timer_callback(self, kwargs):
-        self.log("Callback alarm_disarm_home_auto_timer".format())
+        self.log("Callback alarm_disarm_home_auto_timer")
 
         self.alarm_disarm_home_auto()
 
@@ -1095,9 +1067,7 @@ class AlarmSystem(hass.Hass):
 
         if self.is_alarm_disarmed() == False:
             self.log(
-                "Ignoring because alarm system is in state {}".format(
-                    self.get_alarm_state()
-                )
+                f"Ignoring because alarm system is in state {self.get_alarm_state()}"
             )
             return
 
@@ -1111,16 +1081,12 @@ class AlarmSystem(hass.Hass):
 
         if self.in_guest_mode():
             self.log(
-                "Ignoring because {} we have guests".format(
-                    self.count_home_device_trackers()
-                )
+                f"Ignoring because {self.count_home_device_trackers()} we have guests"
             )
             return
 
         if self.is_time_in_alarm_home_window() == False:
-            self.log(
-                "Ignoring because we are not within alarm home time window".format()
-            )
+            self.log("Ignoring because we are not within alarm home time window")
             return
 
         self.log("Calling service alarm_control_panel/alarm_arm_home")
@@ -1136,9 +1102,7 @@ class AlarmSystem(hass.Hass):
 
         if self.is_alarm_armed_home() == False:
             self.log(
-                "Ignoring because alarm system is in state {}".format(
-                    self.get_alarm_state()
-                )
+                f"Ignoring because alarm system is in state {self.get_alarm_state()}"
             )
             return
 
