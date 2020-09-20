@@ -35,7 +35,7 @@ class AlarmSystem(hass.Hass):
         self._vacation_control = self.args.get("vacation_control", None)
         self._guest_control = self.args.get("guest_control", None)
         self._alarm_control_panel = self.args.get(
-            "alarm_control_panel", "alarm_control_panel.ha_alarm"
+            "alarm_control_panel", "alarm_control_panel.alarm"
         )
         self._alarm_control_buttons = self.args.get("alarm_control_buttons", [])
         self._alarm_lights = self.args.get("alarm_lights", [])
@@ -48,7 +48,6 @@ class AlarmSystem(hass.Hass):
         self._notify_title = self.args.get(
             "notify_title", "AlarmSystem triggered, possible intruder"
         )
-        self._telegram_user_ids = self.args.get("telegram_user_ids", [])
         # cameras
         self._cameras = self.args.get("cameras", [])
         self._camera_snapshot_path = self.args.get("camera_snapshot_path", "/tmp")
@@ -227,6 +226,7 @@ class AlarmSystem(hass.Hass):
             self.start_armed_home_binary_sensor_listeners()
 
     def start_armed_home_binary_sensor_listeners(self):
+        self.log("Starting armed_home binary sensor listeners")
         for sensor in self._armed_home_binary_sensors:
             self._sensor_handles[sensor] = self.listen_state(
                 self.trigger_alarm_while_armed_home_callback,
@@ -287,18 +287,12 @@ class AlarmSystem(hass.Hass):
     def in_guest_mode(self):
         if self._guest_control is None:
             return False
-        if self.get_state(self._guest_control) == "on":
-            return True
-        else:
-            return False
+        return self.get_state(self._guest_control) == "on"
 
     def in_vacation_mode(self):
         if self._vacation_control is None:
             return False
-        if self.get_state(self._vacation_control) == "on":
-            return True
-        else:
-            return False
+        return self.get_state(self._vacation_control) == "on"
 
     def get_alarm_volume(self):
         if self._alarm_volume_control is None:
@@ -325,10 +319,7 @@ class AlarmSystem(hass.Hass):
     def in_silent_mode(self):
         if self._silent_control is None:
             return False
-        if self.get_state(self._silent_control) == "on":
-            return True
-        else:
-            return False
+        return self.get_state(self._silent_control) == "on"
 
     def is_alarm_armed_away(self):
         return self.is_alarm_in_state("armed_away")
@@ -348,10 +339,7 @@ class AlarmSystem(hass.Hass):
     def is_alarm_in_state(self, state):
         if self._alarm_control_panel is None:
             return False
-        if self.get_state(self._alarm_control_panel) == state:
-            return True
-        else:
-            return False
+        return self.get_state(self._alarm_control_panel) == state
 
     def get_alarm_state(self):
         if self._alarm_control_panel is None:
@@ -463,16 +451,6 @@ class AlarmSystem(hass.Hass):
             self.log("Ignoring file because alarm is armed_home")
             return
 
-        for user_id in self._telegram_user_ids:
-            self.log(f"Sending photo {data['path']} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_photo",
-                title="*Alarm System*",
-                target=user_id,
-                file=data["path"],
-                disable_notification=True,
-            )
-
     def start_camera_snapshot(self, reason="default", max_count=3600, interval=1):
         if len(self._cameras) == 0:
             return
@@ -565,7 +543,7 @@ class AlarmSystem(hass.Hass):
             )
         )
 
-        if self.get_xiaomi_aqara_gw_mac() is not None and self.in_silent_mode():
+        if self.get_xiaomi_aqara_gw_mac() and self.in_silent_mode():
             self.call_service(
                 "xiaomi_aqara/play_ringtone",
                 ringtone_id=self.get_xiaomi_aqara_pending_ringtone_id(),
@@ -655,19 +633,6 @@ class AlarmSystem(hass.Hass):
             )
             return
 
-        for user_id in self._telegram_user_ids:
-            msg = "{} state changed from {} to {}".format(
-                self.get_state(entity, attribute="friendly_name"), old, new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
-
         self.log("Calling service alarm_control_panel/alarm_trigger")
 
         self.call_service(
@@ -683,26 +648,16 @@ class AlarmSystem(hass.Hass):
             )
         )
 
+        # TODO: need to think through this. would like to have cascading logic where armed_home is just
+        # a weaker armed_away
         if self.is_alarm_armed_home():
+            self.log("armed_home")
             self.log(
                 "Ignoring status {} of {} because alarm system is in state {}".format(
                     new, entity, self.get_alarm_state()
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} state changed from {} to {}".format(
-                self.get_state(entity, attribute="friendly_name"), old, new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         self.log("Calling service alarm_control_panel/alarm_trigger")
 
@@ -723,19 +678,6 @@ class AlarmSystem(hass.Hass):
             )
             return
 
-        for user_id in self._telegram_user_ids:
-            msg = "{} send arm_away event {}".format(
-                self.get_state(entity, attribute="friendly_name"), new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
-
         self.log("Calling service alarm_control_panel/alarm_arm_away")
 
         self.call_service(
@@ -754,19 +696,6 @@ class AlarmSystem(hass.Hass):
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} send disarm event {}".format(
-                self.get_state(entity, attribute="friendly_name"), new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         self.log("Calling service alarm_control_panel/alarm_disarm")
 
@@ -788,19 +717,6 @@ class AlarmSystem(hass.Hass):
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} send arm_home event {}".format(
-                self.get_state(entity, attribute="friendly_name"), new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         self.log("Calling service alarm_control_panel/alarm_arm_home")
 
@@ -825,21 +741,6 @@ class AlarmSystem(hass.Hass):
             )
             return
 
-        for user_id in self._telegram_user_ids:
-            msg = "{} send arm_away event {}:{}".format(
-                self.get_state(data["entity_id"], attribute="friendly_name"),
-                event_name,
-                data["click_type"],
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
-
         self.log("Calling service alarm_control_panel/alarm_arm_away")
 
         self.call_service(
@@ -862,21 +763,6 @@ class AlarmSystem(hass.Hass):
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} send disarm event {}:{}".format(
-                self.get_state(data["entity_id"], attribute="friendly_name"),
-                event_name,
-                data["click_type"],
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         self.log("Calling service alarm_control_panel/alarm_disarm")
 
@@ -901,21 +787,6 @@ class AlarmSystem(hass.Hass):
             )
             return
 
-        for user_id in self._telegram_user_ids:
-            msg = "{} send arm_home event {}:{}".format(
-                self.get_state(data["entity_id"], attribute="friendly_name"),
-                event_name,
-                data["click_type"],
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
-
         self.log("Calling service alarm_control_panel/alarm_arm_home")
 
         self.call_service(
@@ -934,19 +805,6 @@ class AlarmSystem(hass.Hass):
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} state changed from {} to {}".format(
-                self.get_state(entity, attribute="friendly_name"), old, new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         if self.count_home_device_trackers() > 0:
             self.log(
@@ -982,19 +840,6 @@ class AlarmSystem(hass.Hass):
                 )
             )
             return
-
-        for user_id in self._telegram_user_ids:
-            msg = "{} state changed from {} to {}".format(
-                self.get_state(entity, attribute="friendly_name"), old, new
-            )
-            self.log(f"Sending message {msg} to user_id {user_id}")
-            self.call_service(
-                "telegram_bot/send_message",
-                title="*Alarm System*",
-                target=user_id,
-                message=msg,
-                disable_notification=True,
-            )
 
         self.log("Calling service alarm_control_panel/alarm_disarm")
 
