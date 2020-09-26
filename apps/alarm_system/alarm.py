@@ -1,7 +1,4 @@
 import appdaemon.plugins.hass.hassapi as hass
-import datetime
-import time
-import re
 
 #
 # AlarmSystem App
@@ -249,7 +246,11 @@ class AlarmSystem(hass.Hass):
         )
 
         if self._notify_service is not None:
-            self.notify(name=self._notify_service, title=self._notify_title, message="ALARM TRIGGED")
+            self.notify(
+                name=self._notify_service,
+                title=self._notify_title,
+                message="ALARM TRIGGED",
+            )
 
     def alarm_state_from_armed_home_to_pending_callback(
         self, entity, attribute, old, new, kwargs
@@ -305,11 +306,7 @@ class AlarmSystem(hass.Hass):
                 f"Ignoring status {new} of {entity} because {self.count_home_device_trackers()} device_trackers are still at home"
             )
         else:
-            self.log("Calling service alarm_control_panel/alarm_trigger")
-
-            self.call_service(
-                "alarm_control_panel/alarm_trigger", entity_id=self._alarm_control_panel
-            )
+            self.trigger_alarm()
 
     def trigger_alarm_while_armed_home_callback(
         self, entity, attribute, old, new, kwargs
@@ -321,7 +318,6 @@ class AlarmSystem(hass.Hass):
         # TODO: need to think through this. would like to have cascading logic where armed_home is just
         # a weaker armed_away
         if not self.is_alarm_armed_home():
-            self.log("armed_home")
             self.log(
                 f"Ignoring status {new} of {entity} because alarm system is in state {self.get_alarm_state()}"
             )
@@ -336,38 +332,17 @@ class AlarmSystem(hass.Hass):
         self.log(
             f"Callback alarm_arm_away_state from {entity}:{attribute} {old}->{new}"
         )
-
-        self.log("Calling service alarm_control_panel/alarm_arm_away")
-
-        self.call_service(
-            "alarm_control_panel/alarm_arm_away",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        self.arm_away()
 
     def alarm_disarm_state_callback(self, entity, attribute, old, new, kwargs):
         self.log(f"Callback alarm_disarm_state from {entity}:{attribute} {old}->{new}")
-
-        self.log("Calling service alarm_control_panel/alarm_disarm")
-
-        self.call_service(
-            "alarm_control_panel/alarm_disarm",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        self.disarm()
 
     def alarm_arm_home_state_callback(self, entity, attribute, old, new, kwargs):
         self.log(
             f"Callback alarm_arm_home_state from {entity}:{attribute} {old}->{new}"
         )
-
-        self.log("Calling service alarm_control_panel/alarm_arm_home")
-
-        self.call_service(
-            "alarm_control_panel/alarm_arm_home",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        self.arm_home()
 
     def alarm_arm_away_event_callback(self, event_name, data, kwargs):
         self.log(
@@ -378,15 +353,8 @@ class AlarmSystem(hass.Hass):
             self.log(
                 f"Ignoring event {event_name} of {data['entity_id']} because alarm system is in state {self.get_alarm_state()}"
             )
-            return
-
-        self.log("Calling service alarm_control_panel/alarm_arm_away")
-
-        self.call_service(
-            "alarm_control_panel/alarm_arm_away",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        else:
+            self.arm_away()
 
     def alarm_disarm_event_callback(self, event_name, data, kwargs):
         self.log(
@@ -397,15 +365,8 @@ class AlarmSystem(hass.Hass):
             self.log(
                 f"Ignoring event {event_name} of {data['entity_id']} because alarm system is in state {self.get_alarm_state()}"
             )
-            return
-
-        self.log("Calling service alarm_control_panel/alarm_disarm")
-
-        self.call_service(
-            "alarm_control_panel/alarm_disarm",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        else:
+            self.disarm()
 
     def alarm_arm_home_event_callback(self, event_name, data, kwargs):
         self.log(
@@ -416,12 +377,23 @@ class AlarmSystem(hass.Hass):
             self.log(
                 f"Ignoring event {event_name} of {data['entity_id']} because alarm system is in state {self.get_alarm_state()}"
             )
-            return
+        else:
+            self.arm_home()
 
+    def arm_home(self):
         self.log("Calling service alarm_control_panel/alarm_arm_home")
 
         self.call_service(
             "alarm_control_panel/alarm_arm_home",
+            entity_id=self._alarm_control_panel,
+            code=self._alarm_pin,
+        )
+
+    def arm_away(self):
+        self.log("Calling service alarm_control_panel/alarm_arm_away")
+
+        self.call_service(
+            "alarm_control_panel/alarm_arm_away",
             entity_id=self._alarm_control_panel,
             code=self._alarm_pin,
         )
@@ -433,7 +405,6 @@ class AlarmSystem(hass.Hass):
             self.log(
                 f"Ignoring status {new} of {entity} because alarm system is in state {self.get_alarm_state()}"
             )
-
         elif self.count_home_device_trackers() > 0:
             self.log(
                 f"Ignoring status {new} of {entity} because {self.count_home_device_trackers()} device_trackers are still at home"
@@ -457,15 +428,8 @@ class AlarmSystem(hass.Hass):
             self.log(
                 f"Ignoring status {new} of {entity} because alarm system is in state {self.get_alarm_state()}"
             )
-            return
-
-        self.log("Calling service alarm_control_panel/alarm_disarm")
-
-        self.call_service(
-            "alarm_control_panel/alarm_disarm",
-            entity_id=self._alarm_control_panel,
-            code=self._alarm_pin,
-        )
+        else:
+            self.disarm()
 
     def alarm_arm_home_auto_state_change_callback(
         self, entity, attribute, old, new, kwargs
@@ -513,13 +477,9 @@ class AlarmSystem(hass.Hass):
 
     def alarm_disarm_home_auto(self):
         self.log("Running alarm_disarm_home_auto")
+        self.disarm()
 
-        if self.is_alarm_armed_home():
-            self.log(
-                f"Ignoring because alarm system is in state {self.get_alarm_state()}"
-            )
-            return
-
+    def disarm(self):
         self.log("Calling service alarm_control_panel/alarm_disarm")
 
         self.call_service(
