@@ -16,9 +16,8 @@ class AlarmSystem(hass.Hass):
         # setup sane defaults
         # sensors
         self._armed_home_binary_sensors = self.args.get("armed_home_binary_sensors", [])
-        self._armed_away_binary_sensors = self.args.get(
-            "armed_away_binary_sensors", []
-        ).extend(self._armed_home_binary_sensors)
+        self._armed_away_binary_sensors = self.args.get("armed_away_binary_sensors", [])
+        self._armed_away_binary_sensors.extend(self._armed_home_binary_sensors)
         self._device_trackers = self.args.get("device_trackers", [])
         # controls
         self._vacation_control = self.args.get("vacation_control", None)
@@ -335,7 +334,9 @@ class AlarmSystem(hass.Hass):
         self.arm_away()
 
     def alarm_disarm_state_callback(self, entity, attribute, old, new, kwargs):
-        self.log(f"Callback alarm_disarm_state from {self.friendly_name(entity)}:{attribute} {old}->{new}")
+        self.log(
+            f"Callback alarm_disarm_state from {self.friendly_name(entity)}:{attribute} {old}->{new}"
+        )
         self.disarm()
 
     def alarm_arm_home_state_callback(self, entity, attribute, old, new, kwargs):
@@ -399,7 +400,9 @@ class AlarmSystem(hass.Hass):
         )
 
     def alarm_arm_away_auto_callback(self, entity, attribute, old, new, kwargs):
-        self.log(f"Callback alarm_arm_away_auto from {self.friendly_name(entity)}:{attribute} {old}->{new}")
+        self.log(
+            f"Callback alarm_arm_away_auto from {self.friendly_name(entity)}:{attribute} {old}->{new}"
+        )
 
         if self.is_alarm_disarmed():
             self.log(
@@ -422,7 +425,9 @@ class AlarmSystem(hass.Hass):
             )
 
     def alarm_disarm_auto_callback(self, entity, attribute, old, new, kwargs):
-        self.log(f"Callback alarm_disarm_auto from {self.friendly_name(entity)}:{attribute} {old}->{new}")
+        self.log(
+            f"Callback alarm_disarm_auto from {self.friendly_name(entity)}:{attribute} {old}->{new}"
+        )
 
         if self.is_alarm_disarmed():
             self.log(
