@@ -321,11 +321,7 @@ class AlarmSystem(hass.Hass):
                 f"Ignoring status {new} of {self.friendly_name(entity)} because alarm system is in state {self.get_alarm_state()}"
             )
         else:
-            self.log("Calling service alarm_control_panel/alarm_trigger")
-
-            self.call_service(
-                "alarm_control_panel/alarm_trigger", entity_id=self._alarm_control_panel
-            )
+            self.trigger_alarm()
 
     def alarm_arm_away_state_callback(self, entity, attribute, old, new, kwargs):
         self.log(
@@ -491,4 +487,11 @@ class AlarmSystem(hass.Hass):
             "alarm_control_panel/alarm_disarm",
             entity_id=self._alarm_control_panel,
             code=self._alarm_pin,
+        )
+
+    def trigger_alarm(self):
+        self.log("Calling service alarm_control_panel/alarm_trigger")
+
+        self.call_service(
+            "alarm_control_panel/alarm_trigger", entity_id=self._alarm_control_panel
         )
