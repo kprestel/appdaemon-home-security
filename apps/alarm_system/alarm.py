@@ -59,6 +59,11 @@ class AlarmSystem(hass.Hass):
         self.log(f"Got notify service {self._notify_service}")
         self.log(f"Got alarm state {self.get_alarm_state()}")
 
+        # app notification configuration
+        self._alarm_notifciation_color = self.args.get(
+            "alarm_notifciation_color", "#2DF56D"
+        )
+
         self.listen_state(
             self.alarm_state_triggered_callback,
             self._alarm_control_panel,
@@ -240,15 +245,16 @@ class AlarmSystem(hass.Hass):
         )
 
     def alarm_state_triggered_callback(self, entity, attribute, old, new, kwargs):
+        trigger_source_name = self.friendly_name(entity)
         self.log(
-            f"Callback alarm_state_triggered from {self.friendly_name(entity)}:{attribute} {old}->{new}"
+            f"Callback alarm_state_triggered from {trigger_source_name}:{attribute} {old}->{new}"
         )
 
         if self._notify_service is not None:
             self.notify(
                 name=self._notify_service,
                 title=self._notify_title,
-                message="ALARM TRIGGED",
+                message=f"ALARM TRIGGED by: {trigger_source_name}",
             )
 
     def alarm_state_from_armed_home_to_pending_callback(
@@ -282,12 +288,22 @@ class AlarmSystem(hass.Hass):
             f"Callback alarm_state_armed_away from {self.friendly_name(entity)}:{attribute} {old}->{new}"
         )
         self.start_sensor_listeners()
+        self.notify(
+            name=self._notify_service,
+            title=f"Alarm currently {new}",
+            message="Alarm is now armed ",
+        )
 
     def alarm_state_armed_home_callback(self, entity, attribute, old, new, kwargs):
         self.log(
             f"Callback alarm_state_armed_home from {self.friendly_name(entity)}:{attribute} {old}->{new}"
         )
         self.start_sensor_listeners()
+        self.notify(
+            name=self._notify_service,
+            title=f"Alarm currently {new}",
+            message="Alarm is now armed home",
+        )
 
     def trigger_alarm_while_armed_away_callback(
         self, entity, attribute, old, new, kwargs
